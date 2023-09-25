@@ -124,7 +124,7 @@ def time_plus_one(time: str) -> str:
     return time_str
 
 
-def zero_complement(df):
+def zero_complement(df, link):
     """
     Check time difference between adjacent time points
     if time difference is larger than 1 second
@@ -136,13 +136,13 @@ def zero_complement(df):
         if time_difference(t1, t2) > 1:
             new_row = df.loc[row_id - 1].copy()
             new_row['time'] = time_plus_one(new_row['time'])
-            new_row['tbs'] = '0'
+            new_row[f'tbs_{link}'] = '0'
             df.loc[row_id - 0.5] = new_row
             df = df.sort_index().reset_index(drop=True)
     return df
 
 
-def multiple_zero_complement(data_path: str) -> pd.DataFrame:
+def multiple_zero_complement(data_path: str, link) -> pd.DataFrame:
     """
     Due to the change of data size led by inserting zeros
     Multiple zero complements are required to complement
@@ -151,7 +151,7 @@ def multiple_zero_complement(data_path: str) -> pd.DataFrame:
     df = pd.read_csv(data_path)
     while True:
         l1 = len(df)
-        df = zero_complement(df)
+        df = zero_complement(df, link)
         if len(df) == l1:
             return df
 
@@ -207,9 +207,9 @@ def cut_off(df_DL, df_UL, log_path, start_id):
 
 
 def generate_traffic_zero_complement_file(dl_path, ul_path):
-    df_new_down = multiple_zero_complement(dl_path)
+    df_new_down = multiple_zero_complement(dl_path, 'dl')
     df_new_down.to_csv(dl_path, index=False)
-    df_new_up = multiple_zero_complement(ul_path)
+    df_new_up = multiple_zero_complement(ul_path, 'ul')
     df_new_up.to_csv(ul_path, index=False)
 
 
@@ -224,6 +224,8 @@ def generate_data_file(dl_path, ul_path, log_path, data_file_path, start_index):
     df_new_down = pd.read_csv(dl_path)
     df_new_up = pd.read_csv(ul_path)
     df_cut_off = cut_off(df_new_down, df_new_up, log_path, start_index)
+    duplicated_idx = df_cut_off.index.duplicated()
+    df_cut_off = df_cut_off[~duplicated_idx]
     df_cut_off.to_csv(data_file_path, index_label='time', mode='a')
 
 
