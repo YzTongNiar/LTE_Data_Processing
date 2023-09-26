@@ -3,42 +3,83 @@ import re
 import csv
 import numpy as np
 import pandas as pd
+import datetime
 
-
-def rnti_filter(rnti_path):
-    input_data = open(rnti_path, 'r')
-    rnti_list = []
-    rnti_final = []
+def read_start_time(log_path):
+    log_file = log_path+'/airscope.log'
+    input_data = open(log_file,'r')
     for line in input_data:
+        line = line.split(' ')
+        if line[0] != '\n':
+            return line[0]
+
+def rnti_filter(rnti_path,log_path):
+    input_data = open(rnti_path, 'r')
+    rnti_list = [[],[]]
+    rnti_final = [[],[]]
+    pattern = r'\b(\d+\.\d+)\b'
+    start_time = read_start_time(log_path)
+    start_time = datetime.datetime.strptime(start_time,'%H:%M:%S.%f')
+    for line in input_data:
+        if 'Time' in line:
+            line = next(input_data)
+            match = re.search(pattern, line)
+            if match:
+                time_value = float(match.group(1))
+                time_value = datetime.timedelta(seconds=time_value)+start_time
+                rnti_list[0].append(str(time_value.time()))
+            else:
+                print("Time not found in the data line.")
         if "RNTI=" in line:
             index1 = line.find("=")
             index2 = line.find(')')
-            rnti_list.append(str(hex(int(line[index1+1:index2]))))
-    for rnti in rnti_list:
+            rnti_list[1].append(str(hex(int(line[index1+1:index2]))))
+    for idx, rnti in enumerate(rnti_list[1]):
         if rnti not in '0xfffe':
-            rnti_final.append(rnti)
+            rnti_final[0].append(rnti_list[0][idx])
+            rnti_final[1].append(rnti)
     return rnti_final
 
+def time_period_judge(RNTI_time, RNTI_list, RRC_time_idx):
+    '''
+    RNTI_time: the time of the reading RNTI
+    RNTI_list: the target RNTI list with time
+    RRC_time_idx: the index of the target RNTI
+    '''
+    RNTI_time = datetime.datetime.strptime(RNTI_time,'%H:%M:%S.%f')
+    RRC_time = datetime.datetime.strptime(RNTI_list[0][RRC_time_idx],'%H:%M:%S.%f')
+    if RRC_time_idx == len(RNTI_list[1])-1:
+        next_RRC_time = None
+    else:
+        next_RRC_time = datetime.datetime.strptime(RNTI_list[0][RRC_time_idx+1],'%H:%M:%S.%f')
+
+    if next_RRC_time == None:
+        if RNTI_time > RRC_time:
+            return True
+    else:
+        if RRC_time < RNTI_time < next_RRC_time:
+            return True
+    return False
 
 def filter_data(log_path, csv_write_down, csv_write_up, rntilist):
     input_data = open(log_path, 'r')
     for line in input_data:
         line = line.split(' ')
-
-        for rnti in rntilist:
+        for idx, rnti in enumerate(rntilist[1]):
             if 'rnti=%s,' % rnti in line:
                 if '[MAC' in line or '[HI]' in line:
                     break
-                else:
-                    tbs_string = [s for s in line if "tbs" in s]
-                    rnti_string = [s for s in line if "rnti" in s]
-                    uldl_string = [s for s in line if "DL" in s or 'UL' in s]
-                    tbs_match = [line[0], rnti_string[0][5:], uldl_string[0], re.findall(r"\d+", tbs_string[0])[0]]
-                    if '[DL]' in uldl_string:
-                        csv_write_down.writerow(tbs_match)
-                    else:
-                        csv_write_up.writerow(tbs_match)
 
+                else:
+                    if time_period_judge(line[0],rntilist,idx):
+                        tbs_string = [s for s in line if "tbs" in s]
+                        rnti_string = [s for s in line if "rnti" in s]
+                        uldl_string = [s for s in line if "DL" in s or 'UL' in s]
+                        tbs_match = [line[0], rnti_string[0][5:], uldl_string[0], re.findall(r"\d+", tbs_string[0])[0]]
+                        if '[DL]' in uldl_string:
+                            csv_write_down.writerow(tbs_match)
+                        else:
+                            csv_write_up.writerow(tbs_match)
 
 def time_difference(t1: str, t2: str) -> float:
     """
@@ -83,7 +124,7 @@ def time_plus_one(time: str) -> str:
     return time_str
 
 
-def zero_complement(df):
+def zero_complement(df, link):
     """
     Check time difference between adjacent time points
     if time difference is larger than 1 second
@@ -95,22 +136,22 @@ def zero_complement(df):
         if time_difference(t1, t2) > 1:
             new_row = df.loc[row_id - 1].copy()
             new_row['time'] = time_plus_one(new_row['time'])
-            new_row['tbs'] = '0'
+            new_row[f'tbs_{link}'] = 0
             df.loc[row_id - 0.5] = new_row
             df = df.sort_index().reset_index(drop=True)
     return df
 
 
-def multiple_zero_complement(data_path: str) -> pd.DataFrame:
+def multiple_zero_complement(data_path: str, link) -> pd.DataFrame:
     """
     Due to the change of data size led by inserting zeros
     Multiple zero complements are required to complement
     the entire data set
     """
-    df = pd.read_csv(data_path)
+    df = pd.read_csv(data_path, dtype={'time': str, 'rnti': str, 'link': str, f'tbs_{link}': int})
     while True:
         l1 = len(df)
-        df = zero_complement(df)
+        df = zero_complement(df, link)
         if len(df) == l1:
             return df
 
@@ -125,7 +166,7 @@ def find_time(df: pd.DataFrame, time: str) -> int:
             return index
 
 
-def cut_off(df_DL, df_UL, log_path, start_id):
+def cut_off(df_DL, df_UL, log_path, start_id , data_file_path):
     """
     Cut off the data set by specified time periods
     When cut off, only check the integer part of time
@@ -134,7 +175,7 @@ def cut_off(df_DL, df_UL, log_path, start_id):
     file = open(log_path)
     index = start_id
     for line in file:
-        print('The {id}-th series is extracted.'.format(id=index))
+        print('The {id}-th series is being extracted.'.format(id=index))
         log = line.split(' ')
         time1 = log[1] + '.000000'
         # time2 = log[-1][:-1] + '.000000'
@@ -159,16 +200,23 @@ def cut_off(df_DL, df_UL, log_path, start_id):
         df_index = pd.concat([df_index_DL, df_index_UL_rnti], axis=0)
         df_index = df_index.join(df_index_UL_tbs)
         df_index = df_index.fillna(0)
+        # Add series index
         df_index['series_id'] = np.ones(df_index.shape[0])*index
+        # Delete duplicated samples
+        duplicated_idx = df_index.index.duplicated()
+        df_index = df_index[~duplicated_idx]
+        # Sort samples by time
+        df_index = df_index.sort_index(level=0)
         df_cut_off = pd.concat([df_cut_off, df_index])
+        # df_index.to_csv(data_file_path, index_label='time', mode='a')
         index = index + 1
     return df_cut_off
 
 
 def generate_traffic_zero_complement_file(dl_path, ul_path):
-    df_new_down = multiple_zero_complement(dl_path)
+    df_new_down = multiple_zero_complement(dl_path, 'dl')
     df_new_down.to_csv(dl_path, index=False)
-    df_new_up = multiple_zero_complement(ul_path)
+    df_new_up = multiple_zero_complement(ul_path, 'ul')
     df_new_up.to_csv(ul_path, index=False)
 
 
@@ -180,9 +228,12 @@ def generate_data_file(dl_path, ul_path, log_path, data_file_path, start_index):
     :param data_file_path: the file path to save the final tbs series
     :param start_index: the start index of the tbs series
     """
-    df_new_down = pd.read_csv(dl_path)
-    df_new_up = pd.read_csv(ul_path)
-    df_cut_off = cut_off(df_new_down, df_new_up, log_path, start_index)
+    df_new_down = pd.read_csv(dl_path, dtype={'time': str, 'rnti': str, 'link': str, 'tbs_dl': int})
+    df_new_up = pd.read_csv(ul_path, dtype={'time': str, 'rnti': str, 'link': str, 'tbs_ul': int})
+    df_cut_off = cut_off(df_new_down, df_new_up, log_path, start_index, data_file_path)
+    # delete the duplicated samples
+    # duplicated_idx = df_cut_off.index.duplicated()
+    # df_cut_off = df_cut_off[~duplicated_idx]
     df_cut_off.to_csv(data_file_path, index_label='time', mode='a')
 
 
@@ -190,7 +241,9 @@ def generate_traffic_files(dl_path, ul_path, RNTIlist, file_path, total_log_num 
     """
     :param dl_path: the file path to save downlink traffic block size (tbs_dl)
     :param ul_path: the file path to save uplink traffic block size (tbs_ul)
-    :param RNTIlist: the list of rnti
+    :param RNTIlist: inout path of the RNTI list for targe UE
+    :param file_path: the path of the log file from airscope
+    :param total_log_num: the total number of log files
     """
     f1 = open(dl_path, 'w', newline='')
     write_down = csv.writer(f1)
@@ -212,26 +265,6 @@ def generate_traffic_files(dl_path, ul_path, RNTIlist, file_path, total_log_num 
         except:
             print("An exception occurred")
             break
-
-# if __name__ == "__main__":
-#
-#     appname = 'tiktok'
-#     log_name = 'log_tiktok.txt'
-#     Data_file_location = 'E:/airscope/data/2023.9.13_TIKTOK'
-#     total_log_num = 45
-#     id_str = 300  # start sample index of the class
-#
-#     downlink_path = 'downlink_' + appname + '.csv'
-#     uplink_path = 'uplink_' + appname + '.csv'
-#     series_data_path = 'Data_' + appname + '.csv'
-#     app_timelog_path = 'E:/airscope/data/2023.9.13_TIKTOK/' + log_name
-#     RNTI_path = Data_file_location + '/RNTI.txt'
-#
-#     RNTI_list = rnti_filter(RNTI_path)
-#     generate_traffic_files(downlink_path, uplink_path, RNTI_list, Data_file_location, total_log_num)
-#     generate_traffic_zero_complement_file(downlink_path, uplink_path)
-#     generate_data_file(downlink_path, uplink_path, app_timelog_path, series_data_path, id_str)
-
 
 
 

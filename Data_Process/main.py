@@ -1,12 +1,12 @@
-import decode_ulpl_new
+import decode_ulpl
 import concat_excels
 import encoding_data
 
 if __name__ == '__main__':
     # load file path
-    appname = 'lazada'
-    date = '2023.9.23'
-    total_log_num = 314
+    appname = 'wechat_videochat'
+    date = '2023.9.24'
+    total_log_num = 240
     id_str = 0  # start sample index of the class
 
     day = date[5:].replace('.', '_')
@@ -26,10 +26,10 @@ if __name__ == '__main__':
     app_timelog_path = f'F:/airscope/data/{date}_{appname}/' + log_name  # the path for the time stamp
     RNTI_path = Data_file_location + '/RNTI.txt'  # the path for the '.pcap' file
 
-    # RNTI_list = decode_ulpl_new.rnti_filter(RNTI_path, Data_file_location)
-    # decode_ulpl_new.generate_traffic_files(downlink_path, uplink_path, RNTI_list, Data_file_location, total_log_num)
-    # decode_ulpl_new.generate_traffic_zero_complement_file(downlink_path, uplink_path)
-    # decode_ulpl_new.generate_data_file(downlink_path, uplink_path, app_timelog_path, series_data_path, id_str)
+    RNTI_list = decode_ulpl.rnti_filter(RNTI_path, Data_file_location)
+    decode_ulpl.generate_traffic_files(downlink_path, uplink_path, RNTI_list, Data_file_location, total_log_num)
+    decode_ulpl.generate_traffic_zero_complement_file(downlink_path, uplink_path)
+    decode_ulpl.generate_data_file(downlink_path, uplink_path, app_timelog_path, series_data_path, id_str)
 
     # concat_excels.merge(data_folder, X_train_path)
     encoded_data = encoding_data.load_encoded_data(X_train_path, y_train_path, save_path, save_encoded_path)
