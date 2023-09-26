@@ -16,7 +16,6 @@ def encoding_feature(Data, Label):
         try:
             isequence_features = group[Feature_Columns]
             ilabel = Label[Label.series_id == iseries_id].iloc[0].label
-
             sequences.append((isequence_features, ilabel))
         except:
             print(f'An error happen at series {iseries_id}')
@@ -72,20 +71,20 @@ def val_index(encoded_data):
     print('pass')
 
 
-if __name__ == '__main__':
-    '''
-    FOR FIRST TIME TO ENCODE DATA
-    '''
-
-    X_train_path = "C:/Users/yongming001/Desktop/LTE project/DataSetMaker_Interpolation/all_data.csv" # Data file
-    y_train_path = "C:/Users/yongming001/Desktop/LTE project/DataSetMaker_Interpolation/label.csv"  # Label file
-    save_path = 'encoded_feature_9_14.pkl'  # Encoded data pkl file
-    save_encoded_path = 'encoded_feature_9_14.csv'  # Encoded data csv file
-    encoding_data = load_encoded_data(X_train_path, y_train_path, save_path, save_encoded_path  )
-
-    '''
-    SECOND TIME TO SLICE DATA AND PICK TEST DATA
-    '''
+# if __name__ == '__main__':
+#     '''
+#     FOR FIRST TIME TO ENCODE DATA
+#     '''
+#
+#     X_train_path = "C:/Users/yongming001/Desktop/LTE project/DataSetMaker_Interpolation/all_data.csv" # Data file
+#     y_train_path = "C:/Users/yongming001/Desktop/LTE project/DataSetMaker_Interpolation/label.csv"  # Label file
+#     save_path = 'encoded_feature_9_14.pkl'  # Encoded data pkl file
+#     save_encoded_path = 'encoded_feature_9_14.csv'  # Encoded data csv file
+#     encoding_data = load_encoded_data(X_train_path, y_train_path, save_path, save_encoded_path  )
+#
+#     '''
+#     SECOND TIME TO SLICE DATA AND PICK TEST DATA
+#     '''
     #
     # save_path = 'encoded_feature.pkl'  # Encoded data pkl file
     # with open(save_path, 'rb') as ff:

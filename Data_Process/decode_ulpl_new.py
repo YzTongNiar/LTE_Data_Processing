@@ -166,7 +166,7 @@ def find_time(df: pd.DataFrame, time: str) -> int:
             return index
 
 
-def cut_off(df_DL, df_UL, log_path, start_id):
+def cut_off(df_DL, df_UL, log_path, start_id , data_file_path):
     """
     Cut off the data set by specified time periods
     When cut off, only check the integer part of time
@@ -201,7 +201,13 @@ def cut_off(df_DL, df_UL, log_path, start_id):
         df_index = df_index.join(df_index_UL_tbs)
         df_index = df_index.fillna(0)
         df_index['series_id'] = np.ones(df_index.shape[0])*index
+        # Delete duplicated samples
+        duplicated_idx = df_index.index.duplicated()
+        df_index = df_index[~duplicated_idx]
+        # Sort samples by time
+        df_index = df_index.sort_index(level=0)
         df_cut_off = pd.concat([df_cut_off, df_index])
+        # df_index.to_csv(data_file_path, index_label='time', mode='a')
         index = index + 1
     return df_cut_off
 
@@ -223,9 +229,10 @@ def generate_data_file(dl_path, ul_path, log_path, data_file_path, start_index):
     """
     df_new_down = pd.read_csv(dl_path)
     df_new_up = pd.read_csv(ul_path)
-    df_cut_off = cut_off(df_new_down, df_new_up, log_path, start_index)
-    duplicated_idx = df_cut_off.index.duplicated()
-    df_cut_off = df_cut_off[~duplicated_idx]
+    df_cut_off = cut_off(df_new_down, df_new_up, log_path, start_index, data_file_path)
+    # delete the duplicated samples
+    # duplicated_idx = df_cut_off.index.duplicated()
+    # df_cut_off = df_cut_off[~duplicated_idx]
     df_cut_off.to_csv(data_file_path, index_label='time', mode='a')
 
 
