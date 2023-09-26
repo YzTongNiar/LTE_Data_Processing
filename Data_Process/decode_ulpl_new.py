@@ -148,7 +148,7 @@ def multiple_zero_complement(data_path: str, link) -> pd.DataFrame:
     Multiple zero complements are required to complement
     the entire data set
     """
-    df = pd.read_csv(data_path)
+    df = pd.read_csv(data_path, dtype={'time': str, 'rnti': str, 'link': str, 'tbs_ul': int})
     while True:
         l1 = len(df)
         df = zero_complement(df, link)
@@ -200,7 +200,10 @@ def cut_off(df_DL, df_UL, log_path, start_id , data_file_path):
         df_index = pd.concat([df_index_DL, df_index_UL_rnti], axis=0)
         df_index = df_index.join(df_index_UL_tbs)
         df_index = df_index.fillna(0)
-        df_index['series_id'] = np.ones(df_index.shape[0])*index
+        # Add series index
+        idx = np.ones(df_index.shape[0])*index
+        idx = idx.astype(int)
+        df_index['series_id'] = idx
         # Delete duplicated samples
         duplicated_idx = df_index.index.duplicated()
         df_index = df_index[~duplicated_idx]
@@ -227,8 +230,8 @@ def generate_data_file(dl_path, ul_path, log_path, data_file_path, start_index):
     :param data_file_path: the file path to save the final tbs series
     :param start_index: the start index of the tbs series
     """
-    df_new_down = pd.read_csv(dl_path)
-    df_new_up = pd.read_csv(ul_path)
+    df_new_down = pd.read_csv(dl_path, dtype={'time': str, 'rnti': str, 'link': str, 'tbs_dl': str})
+    df_new_up = pd.read_csv(ul_path, dtype={'time': str, 'rnti': str, 'link': str, 'tbs_ul': str})
     df_cut_off = cut_off(df_new_down, df_new_up, log_path, start_index, data_file_path)
     # delete the duplicated samples
     # duplicated_idx = df_cut_off.index.duplicated()
