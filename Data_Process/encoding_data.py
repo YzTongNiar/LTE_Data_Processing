@@ -27,8 +27,8 @@ def encoding_feature(Data, Label):
 def load_encoded_data(X_train_path, y_train_path, save_path, save_encoded_path):
 
     X_train = pd.read_csv(X_train_path, dtype={'time': str, 'rnti': str,
-                                               'link': str, 'tbs_dl': str,
-                                               'tbs_ul': str, 'series_id': int})  # Data file
+                                               'link': str, 'tbs_dl': int,
+                                               'tbs_ul': int, 'series_id': int})  # Data file
     # X_train = pd.read_csv(X_train_path)
     y_train = pd.read_csv(y_train_path, dtype={'apps': str, 'series_id': int})  # Label file
 
