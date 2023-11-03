@@ -23,6 +23,7 @@ def validate_and_save_data(sample, is_valid):
         valid_collection.insert_one(sample)
     else:
         invalid_collection.insert_one(sample)
+    # collection.delete_one({'_id': sample['_id']})
 
 # Connect to MongoDB
 url = "mongodb+srv://cellulartraffic:Record_123@cellulartraffic.li8kini.mongodb.net/?retryWrites=true&w=majority"
