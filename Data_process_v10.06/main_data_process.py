@@ -8,7 +8,7 @@ import prb_map
 import push_up
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--raw_data_folder_path', default='F:/airscope_data/validation_data/', type=str, help='The folder to store airscope.log, data folder in this folder should be like 2023.10.24_tiktok ')
+parser.add_argument('--raw_data_folder_path', default='F:/airscope_data/data/', type=str, help='The folder to store airscope.log, data folder in this folder should be like 2023.10.24_tiktok ')
 parser.add_argument('--filtered_data_folder', default='./Processed_data/Filtered_data/', type=str, help='The folder to store the dl or ul tbs data')
 parser.add_argument('--data_for_encoding', default='./Processed_data/Apps_data/', type=str, help='The folder to store the data after cutting of')
 parser.add_argument('--X_train_path', default='./Processed_data/data_all_apps.csv', type=str, help='The path to store data of all apps')
@@ -61,7 +61,6 @@ if __name__ == '__main__':
         record_time_filename = [x for x in app_data_list if 'log_' in x]
         record_time_path = app_data_path + '/' + record_time_filename[0]
         airscp_csv_filename = [x for x in app_data_list if 'airscope.csv' in x]
-        # print(airscp_csv_filename)
         airscp_csv_path = app_data_path + '/' + airscp_csv_filename[0]
         total_log_number = len(log_file_list)
 

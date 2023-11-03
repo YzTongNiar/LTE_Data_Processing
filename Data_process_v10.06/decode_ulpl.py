@@ -110,7 +110,7 @@ def zero_complement(df, link, appname):
     return df_new
 
 
-def cut_off(df_DL, df_UL, log_path, start_id, data_file_path,appname):
+def cut_off(df_DL, df_UL, log_path, start_id, data_file_path, appname):
     """
     Cut off the data set by specified time periods
     When cut off, only check the integer part of time
