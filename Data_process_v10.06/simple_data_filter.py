@@ -7,14 +7,16 @@ import numpy as np
 def plot_data_samples(samples):
     fig, ax = plt.subplots(batch_size, figsize=(20, 5 * batch_size), layout='constrained')
     for i, sample in enumerate(samples):
+        app = sample['app']
         time = [point['time'] for point in sample['data']]
         total_dl = [point['total_dl'] for point in sample['data']]
         total_ul = [point['total_ul'] for point in sample['data']]
 
         ax[i].plot(time, total_ul, label='Upload bps', linewidth=2)
         ax[i].plot(time, total_dl, label='Download bps', linewidth=2)
-        ax[i].set_title(f'sample {i}')
-        ax[i].legend(fontsize="15")
+        ax[i].set_title(f'app {app} sample {i}', fontsize=30)
+        ax[i].tick_params(axis="y", labelsize=30)
+        ax[i].legend(fontsize="10")
     fig.show()
 
 # Function to validate and save data
@@ -23,7 +25,7 @@ def validate_and_save_data(sample, is_valid):
         valid_collection.insert_one(sample)
     else:
         invalid_collection.insert_one(sample)
-    # collection.delete_one({'_id': sample['_id']})
+    collection.delete_one({'_id': sample['_id']})
 
 # Connect to MongoDB
 url = "mongodb+srv://cellulartraffic:Record_123@cellulartraffic.li8kini.mongodb.net/?retryWrites=true&w=majority"
@@ -36,7 +38,7 @@ collection = db["traffic_with_prb"]
 valid_collection = db["valid_data"]
 invalid_collection = db["invalid_data"]
 
-# Query and process data in batches of 5
+# Query and process data i0n batches of 5
 batch_size = 5
 skip = 0
 
@@ -45,10 +47,14 @@ while True:
     if not samples:
         break  # No more data to process
 
+    # if samples[0]['app'] != 'amazonprime':
+    #     skip += batch_size
+    #     continue
+
     # Plot data samples
     plot_data_samples(samples)
 
-    # Get user input for which samples to keep
+    # Get user input for which samples to keepa
     user_input = input("Enter the indices of valid samples (0-4), 'a' for all valid, 'n' for all invalid, or 'q' to quit: ")
 
     if user_input == 'q':
@@ -57,6 +63,9 @@ while True:
         valid_indices = list(range(len(samples)))  # Mark all samples as valid
     elif user_input == 'n':
         valid_indices = []  # Mark all samples as invalid
+    elif user_input == 's':
+        skip += batch_size
+        continue
     else:
         try:
             valid_indices = [int(idx) for idx in user_input.split()]

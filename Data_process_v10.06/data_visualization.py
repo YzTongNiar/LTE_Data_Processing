@@ -29,7 +29,7 @@ if __name__ == '__main__':
             ifig += 1
             if ifig == 10:
                 fig.show()
-                fig.savefig(f'./fig/{app_name}/{dataindex}')
+                fig.savefig(f'./fig/{app_name}/{dataindex}_2')
                 ifig = 0
 
         os.system('pause')

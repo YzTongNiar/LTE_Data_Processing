@@ -8,7 +8,7 @@ import prb_map
 import push_up
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--raw_data_folder_path', default='F:/airscope_data/data/', type=str, help='The folder to store airscope.log, data folder in this folder should be like 2023.10.24_tiktok ')
+parser.add_argument('--raw_data_folder_path', default='F:/airscope_data/validation_data3/', type=str, help='The folder to store airscope.log, data folder in this folder should be like 2023.10.24_tiktok ')
 parser.add_argument('--filtered_data_folder', default='./Processed_data/Filtered_data/', type=str, help='The folder to store the dl or ul tbs data')
 parser.add_argument('--data_for_encoding', default='./Processed_data/Apps_data/', type=str, help='The folder to store the data after cutting of')
 parser.add_argument('--X_train_path', default='./Processed_data/data_all_apps.csv', type=str, help='The path to store data of all apps')
@@ -18,7 +18,7 @@ args = parser.parse_args()
 
 
 def label_save(appname, sample_ind, id_last, label_file_path):
-    label_class = {'a_streamingvideo': ['tiktok', 'netflix', 'youtube'],
+    label_class = {'a_streamingvideo': ['tiktok', 'netflix', 'youtube','amazonprime'],
                    'b_streamingmusic': ['spotify', 'youtubemusic', 'applemusic'],
                    'c_textchat': ['whatsapptext', 'wechattext', 'telegramtext'],
                    'd_videochat': ['whatsappvideo', 'wechatvideo', 'telegramvideo'],
@@ -118,4 +118,4 @@ if __name__ == '__main__':
         '''
         push to MongoDB
         '''
-        MongoDB.saveDatatoDB(save_encoded_with_prb_path, label_path)
+        # MongoDB.saveDatatoDB(save_encoded_with_prb_path, label_path)
