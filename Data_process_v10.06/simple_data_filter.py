@@ -32,7 +32,7 @@ url = "mongodb+srv://cellulartraffic:Record_123@cellulartraffic.li8kini.mongodb.
 db_name = 'test'
 client = MongoClient(url)
 db = client[db_name]
-collection = db["traffic_with_prb"]
+collection = db["valid_data"]
 
 # Create valid and invalid collections
 valid_collection = db["valid_data"]
@@ -41,13 +41,14 @@ invalid_collection = db["invalid_data"]
 # Query and process data i0n batches of 5
 batch_size = 5
 skip = 0
+query = {'app':'applemusic'}
 
 while True:
-    samples = list(collection.find().skip(skip).limit(batch_size))
+    samples = list(collection.find(query).skip(skip).limit(batch_size))
     if not samples:
         break  # No more data to process
 
-    # if samples[0]['app'] != 'amazonprime':
+    # if samples[0]['app'] != 'applemusic':
     #     skip += batch_size
     #     continue
 

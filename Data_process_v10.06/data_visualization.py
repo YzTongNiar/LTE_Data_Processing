@@ -4,7 +4,7 @@ import pandas as pd
 import os
 
 if __name__ == '__main__':
-    app_name = 'youtubemusic'
+    app_name = 'applemusic'
     save_path = f'./Processed_data/Encoded_data/encoded_feature_{app_name}.csv'  # Encoded data csv file
     df = pd.read_csv(save_path, sep=',')
 
@@ -29,7 +29,7 @@ if __name__ == '__main__':
             ifig += 1
             if ifig == 10:
                 fig.show()
-                fig.savefig(f'./fig/{app_name}/{dataindex}_2')
+                fig.savefig(f'./fig/{app_name}/{dataindex}_1')
                 ifig = 0
 
         os.system('pause')

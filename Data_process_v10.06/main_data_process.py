@@ -8,7 +8,7 @@ import prb_map
 import push_up
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--raw_data_folder_path', default='F:/airscope_data/validation_data3/', type=str, help='The folder to store airscope.log, data folder in this folder should be like 2023.10.24_tiktok ')
+parser.add_argument('--raw_data_folder_path', default='F:/airscope_data/validation_data5/', type=str, help='The folder to store airscope.log, data folder in this folder should be like 2023.10.24_tiktok ')
 parser.add_argument('--filtered_data_folder', default='./Processed_data/Filtered_data/', type=str, help='The folder to store the dl or ul tbs data')
 parser.add_argument('--data_for_encoding', default='./Processed_data/Apps_data/', type=str, help='The folder to store the data after cutting of')
 parser.add_argument('--X_train_path', default='./Processed_data/data_all_apps.csv', type=str, help='The path to store data of all apps')
@@ -81,41 +81,41 @@ if __name__ == '__main__':
         Data_process for each app
         '''
 
-        '''
-        RNTI list of the experiment mobile phone
-        '''
-        RNTI_list = decode_ulpl.rnti_filter(rnti_file_path, app_data_path)
-        '''
-        Filter the ul dl tbs from the airscope.log files
-        '''
-        decode_ulpl.generate_traffic_files(downlink_path, uplink_path, RNTI_list, app_data_path, total_log_number,
-                                           app_name)
-        '''
-        complement zeros for the time when there are no valid ul or dl tbs data (for cut of)
-        '''
-        decode_ulpl.generate_traffic_zero_complement_file(downlink_path, uplink_path, dl_aft_zerocom,
-                                                          ul_aft_zerocom, app_name)
-        '''
-        cut the data with the log of running app
-        '''
-
-        id_str = decode_ulpl.generate_data_file(dl_aft_zerocom, ul_aft_zerocom, record_time_path, series_data_path,
-                                                id_str, app_name)
-
-        '''
-        generate the label file
-        '''
-        label_save(app_name, id_str, id_str_last, label_path)
-
-        '''
-        add prb value
-        '''
-        encoding_data.load_encoded_data(series_data_path, label_path, save_path, save_encoded_path)
-        '''
-        calculate mean prb and add to label
-        '''
-        encoded_data_with_prb = prb_map.prb_mapping(airscp_csv_path, record_time_path, save_encoded_path, save_encoded_with_prb_path, label_path)
-        '''
-        push to MongoDB
-        '''
+        # '''
+        # RNTI list of the experiment mobile phone
+        # '''
+        # RNTI_list = decode_ulpl.rnti_filter(rnti_file_path, app_data_path)
+        # '''
+        # Filter the ul dl tbs from the airscope.log files
+        # '''
+        # decode_ulpl.generate_traffic_files(downlink_path, uplink_path, RNTI_list, app_data_path, total_log_number,
+        #                                    app_name)
+        # '''
+        # complement zeros for the time when there are no valid ul or dl tbs data (for cut of)
+        # '''
+        # decode_ulpl.generate_traffic_zero_complement_file(downlink_path, uplink_path, dl_aft_zerocom,
+        #                                                   ul_aft_zerocom, app_name)
+        # '''
+        # cut the data with the log of running app
+        # '''
+        #
+        # id_str = decode_ulpl.generate_data_file(dl_aft_zerocom, ul_aft_zerocom, record_time_path, series_data_path,
+        #                                         id_str, app_name)
+        #
+        # '''
+        # generate the label file
+        # '''
+        # label_save(app_name, id_str, id_str_last, label_path)
+        #
+        # '''
+        # add prb value
+        # '''
+        # encoding_data.load_encoded_data(series_data_path, label_path, save_path, save_encoded_path)
+        # '''
+        # calculate mean prb and add to label
+        # '''
+        # encoded_data_with_prb = prb_map.prb_mapping(airscp_csv_path, record_time_path, save_encoded_path, save_encoded_with_prb_path, label_path)
+        # '''
+        # push to MongoDB
+        # '''
         # MongoDB.saveDatatoDB(save_encoded_with_prb_path, label_path)
